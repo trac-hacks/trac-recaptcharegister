@@ -3,7 +3,7 @@ from genshi.builder import tag
 from genshi.core import Markup
 from genshi.filters.transform import Transformer
 from recaptcha.client import captcha
-from trac.core import Component, implements
+from trac.core import Component, implements, TracError
 from trac.web.api import ITemplateStreamFilter
 from trac.web.chrome import add_warning
 from trac.web.main import IRequestFilter
@@ -136,14 +136,10 @@ var RecaptchaOptions = {
                     self.private_key, req.remote_addr,
                 )
                 if not response.is_valid:
-                    req.session['captcha_error'] = \
-                                        'reCAPTCHA incorrect. Please try again.'
-                    req.session.save()
-                    req.redirect(req.href.register())
-            elif req.method == 'GET' and 'captcha_error' in req.session:
-                add_warning(req, req.session['captcha_error'])
-                del req.session['captcha_error']
-                req.session.save()
+                    add_warning(req, 'reCAPTCHA incorrect. Please try again.')
+                    req.environ['REQUEST_METHOD'] = 'GET'
+                    req.args.pop('password', None)
+                    req.args.pop('password_confirm', None)
 
         # Admin Configuration
         if req.path_info.startswith(req.href.admin('/accounts/config')) and \
@@ -159,6 +155,12 @@ var RecaptchaOptions = {
         return handler
 
     def post_process_request(self, req, template, data, content_type):
+        if template == "register.html":
+            if "acctmgr" not in data:
+                data["acctmgr"] = {}
+            data["acctmgr"]['username'] = data["acctmgr"].get('username', None) or req.args.get('user', None)
+            data["acctmgr"]['name'] = data["acctmgr"].get('name', None) or req.args.get('name', None)
+            data["acctmgr"]['email'] = data["acctmgr"].get('email', None) or req.args.get('email', None)
         return template, data, content_type
 
     def check_config(self):
