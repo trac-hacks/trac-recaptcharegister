@@ -26,7 +26,7 @@ class RecaptchaRegistrationModule(Component):
 
     # ITemplateStreamFilter method
     def filter_stream(self, req, method, filename, stream, data):
-        if req.path_info.startswith(req.href.register()) and (
+        if req.path_info.startswith('/register') and (
             req.method == 'GET' or
             'registration_error' in data or
             'captcha_error' in req.session):
@@ -46,7 +46,7 @@ var RecaptchaOptions = {
             return stream | Transformer(xpath_match). \
                 append(captcha_opts + tag(Markup(captcha_js)))
         # Admin Configuration
-        elif req.path_info.startswith(req.href.admin('/accounts/config')):
+        elif req.path_info.startswith('/admin/accounts/config'):
             api_html = tag.div(
                 tag.label("Public Key:", for_="recaptcha_public_key") +
                 tag.input(class_="textwidget", name="recaptcha_public_key",
@@ -142,7 +142,7 @@ var RecaptchaOptions = {
                     req.args.pop('password_confirm', None)
 
         # Admin Configuration
-        if req.path_info.startswith(req.href.admin('/accounts/config')) and \
+        if req.path_info.startswith('/admin/accounts/config') and \
             req.method == 'POST':
             self.config.set('recaptcha', 'lang', req.args.get('recaptcha_lang'))
             self.config.set('recaptcha', 'public_key',
