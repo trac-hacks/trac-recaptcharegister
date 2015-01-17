@@ -123,11 +123,11 @@ var RecaptchaOptions = {
 
     # IRequestFilter methods
     def pre_process_request(self, req, handler):
-        if not (self.private_key or self.private_key):
-            self.log.warning('public_key and private_key under [recaptcha] are '
-                             'not configured. Not showing the reCAPTCHA form!')
-            return handler
         if isinstance(handler, RegistrationModule):
+            if not (self.private_key or self.private_key):
+                self.log.warning('public_key and private_key under [recaptcha] are '
+                                 'not configured. Not showing the reCAPTCHA form!')
+                return handler
             self.check_config()
             if req.method == 'POST' and req.args.get('action') == 'create':
                 response = captcha.submit(
