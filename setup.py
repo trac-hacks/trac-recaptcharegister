@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name = 'TracRecaptchaRegister',
-    version = '0.3.1',
+    version = '0.3.2',
     author = 'Alejandro J. Cura, Pedro Algarvio',
     author_email = 'alecu@vortech.com.ar, ufs@ufsoft.org',
     url = 'http://trac-hacks.org/wiki/RecaptchaRegisterPlugin',
