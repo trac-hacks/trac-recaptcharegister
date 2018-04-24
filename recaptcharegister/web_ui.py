@@ -39,8 +39,9 @@ var RecaptchaOptions = {
 }""" % (self.theme, self.lang), type='text/javascript')
             captcha_js = captcha.displayhtml(
                 self.public_key, use_ssl=req.scheme=='https',
-                error='reCAPTCHA incorrect. Please try again.'
-            )
+                error='reCAPTCHA incorrect. Please try again.',
+                version=2
+            ) + captcha.load_script(version=2)
             # First Fieldset of the registration form XPath match
             xpath_match = '//form[@id="acctmgr_registerform"]/fieldset[1]'
             return stream | Transformer(xpath_match). \
@@ -130,8 +131,7 @@ var RecaptchaOptions = {
                 return handler
             self.check_config()
             if req.method == 'POST' and req.args.get('action') == 'create':
-                response = captcha.submit(
-                    req.args.get('recaptcha_challenge_field'),
+                response = captcha.v2submit(
                     req.args.get('recaptcha_response_field'),
                     self.private_key, req.remote_addr,
                 )
