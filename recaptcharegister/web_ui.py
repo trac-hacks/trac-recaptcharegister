@@ -132,7 +132,7 @@ var RecaptchaOptions = {
             self.check_config()
             if req.method == 'POST' and req.args.get('action') == 'create':
                 response = captcha.v2submit(
-                    req.args.get('recaptcha_response_field'),
+                    req.args.get('g-recaptcha-response'),
                     self.private_key, req.remote_addr,
                 )
                 if not response.is_valid:
