@@ -1,35 +1,46 @@
+# -*- coding: utf-8 -*-
+#
+
 from acct_mgr.web_ui import RegistrationModule
-from genshi.builder import tag
-from genshi.core import Markup
 from genshi.filters.transform import Transformer
 from recaptcha.client import captcha
-from trac.core import Component, implements, TracError
+from trac.core import Component, implements
 from trac.web.api import ITemplateStreamFilter
 from trac.web.chrome import add_warning
 from trac.web.main import IRequestFilter
 from trac.config import Option
+from trac.util.html import Markup, html as tag
 
 
 class RecaptchaRegistrationModule(Component):
     implements(ITemplateStreamFilter, IRequestFilter)
-    env = log = config = None # make pylint happy
-    public_key = Option('recaptcha', 'public_key',
-        doc='The public key given to you from the reCAPTCHA site')
-    private_key = Option('recaptcha', 'private_key',
-        doc='The private key given to you from the reCAPTCHA site')
-    theme = Option('recaptcha', 'theme', default='white',
-        doc='Can be red, white (default), blackglass, clean or custom. '
-            'Please see http://wiki.recaptcha.net/index.php/Theme')
-    lang = Option('recaptcha', 'lang', default='en',
-        doc='reCAPTCHA language; one of "en", "nl", "fr", "de", "pt", "ru", '
-            '"es" and "tr"')
+
+    public_key = Option(
+        'recaptcha', 'public_key',
+        doc="The public key given to you from the reCAPTCHA site")
+
+    private_key = Option(
+        'recaptcha', 'private_key',
+        doc="The private key given to you from the reCAPTCHA site")
+
+    theme = Option(
+        'recaptcha', 'theme', default='white',
+        doc="""Can be red, white (default), blackglass, clean or custom.
+            Please see http://wiki.recaptcha.net/index.php/Theme
+            """)
+
+    lang = Option(
+        'recaptcha', 'lang', default='en',
+        doc="""reCAPTCHA language; one of "en", "nl", "fr", "de", "pt",
+            "ru", "es" and "tr"
+            """)
 
     # ITemplateStreamFilter method
     def filter_stream(self, req, method, filename, stream, data):
         if req.path_info.startswith('/register') and (
             req.method == 'GET' or
             'registration_error' in data or
-            'captcha_error' in req.session):
+                'captcha_error' in req.session):
             if not (self.private_key or self.private_key):
                 return stream
             captcha_opts = tag.script("""\
@@ -38,7 +49,7 @@ var RecaptchaOptions = {
   lang: "%s"
 }""" % (self.theme, self.lang), type='text/javascript')
             captcha_js = captcha.displayhtml(
-                self.public_key, use_ssl=req.scheme=='https',
+                self.public_key, use_ssl=req.scheme == 'https',
                 error='reCAPTCHA incorrect. Please try again.',
                 version=2
             ) + captcha.load_script(version=2)
@@ -62,9 +73,9 @@ var RecaptchaOptions = {
                     tag.a("Generate a reCAPTCHA API key for this Trac "
                           "instance domain.", target="_blank",
                           href="http://recaptcha.net/api/getkey?domain=%s&"
-                            "app=TracRecaptchaRegister" %
-                            req.environ.get('SERVER_NAME')
-                    )
+                          "app=TracRecaptchaRegister" %
+                          req.environ.get('SERVER_NAME')
+                          )
                 ) + tag.br() + api_html
 
             theme_html = tag.div(
@@ -72,16 +83,16 @@ var RecaptchaOptions = {
                 tag.select(
                     tag.option("Black Glass",
                                value="blackglass",
-                               selected=self.theme=='blackglass' or None) +
+                               selected=self.theme == 'blackglass' or None) +
                     tag.option("Clean",
                                value="clean",
-                               selected=self.theme=='clean' or None) +
+                               selected=self.theme == 'clean' or None) +
                     tag.option("Red",
                                value="red",
-                               selected=self.theme=='red' or None) +
+                               selected=self.theme == 'red' or None) +
                     tag.option("White",
                                value="white",
-                               selected=self.theme=='white' or None),
+                               selected=self.theme == 'white' or None),
                     name='recaptcha_theme'
                 )
             )
@@ -91,27 +102,27 @@ var RecaptchaOptions = {
                 tag.select(
                     tag.option("Dutch",
                                value="nl",
-                               selected=self.lang=='nl' or None) +
+                               selected=self.lang == 'nl' or None) +
                     tag.option("English",
                                value="en",
-                               selected=self.lang=='en' or None) +
+                               selected=self.lang == 'en' or None) +
                     tag.option("French",
-                               selected=self.lang=='fr' or None) +
+                               selected=self.lang == 'fr' or None) +
                     tag.option("German",
                                value="de",
-                               selected=self.lang=='de' or None) +
+                               selected=self.lang == 'de' or None) +
                     tag.option("Portuguese",
                                value="pt",
-                               selected=self.lang=='pt' or None) +
+                               selected=self.lang == 'pt' or None) +
                     tag.option("Russian",
                                value="ru",
-                               selected=self.lang=='ru' or None) +
+                               selected=self.lang == 'ru' or None) +
                     tag.option("Spanish",
                                value="es",
-                               selected=self.lang=='es' or None) +
+                               selected=self.lang == 'es' or None) +
                     tag.option("Turkish",
                                value="tr",
-                               selected=self.lang=='tr' or None),
+                               selected=self.lang == 'tr' or None),
                     name='recaptcha_lang'))
 
             # First fieldset of the Account Manager config form
@@ -126,8 +137,9 @@ var RecaptchaOptions = {
     def pre_process_request(self, req, handler):
         if isinstance(handler, RegistrationModule):
             if not (self.private_key or self.private_key):
-                self.log.warning('public_key and private_key under [recaptcha] are '
-                                 'not configured. Not showing the reCAPTCHA form!')
+                self.log.warning('public_key and private_key under '
+                                 '[recaptcha] are not configured. Not showing '
+                                 'the reCAPTCHA form!')
                 return handler
             self.check_config()
             if req.method == 'POST' and req.args.get('action') == 'create':
@@ -143,8 +155,9 @@ var RecaptchaOptions = {
 
         # Admin Configuration
         if req.path_info.startswith('/admin/accounts/config') and \
-            req.method == 'POST':
-            self.config.set('recaptcha', 'lang', req.args.get('recaptcha_lang'))
+                req.method == 'POST':
+            self.config.set('recaptcha', 'lang',
+                            req.args.get('recaptcha_lang'))
             self.config.set('recaptcha', 'public_key',
                             req.args.get('recaptcha_public_key'))
             self.config.set('recaptcha', 'private_key',
@@ -155,19 +168,23 @@ var RecaptchaOptions = {
         return handler
 
     def post_process_request(self, req, template, data, content_type):
-        if template == "register.html":
-            if "acctmgr" not in data:
-                data["acctmgr"] = {}
-            data["acctmgr"]['username'] = data["acctmgr"].get('username', None) or req.args.get('user', None)
-            data["acctmgr"]['name'] = data["acctmgr"].get('name', None) or req.args.get('name', None)
-            data["acctmgr"]['email'] = data["acctmgr"].get('email', None) or req.args.get('email', None)
+        if template == 'register.html':
+            if 'acctmgr' not in data:
+                data['acctmgr'] = {}
+            data['acctmgr']['username'] = \
+                data['acctmgr'].get('username') or req.args.get('user')
+            data['acctmgr']['name'] = \
+                data['acctmgr'].get('name') or req.args.get('name')
+            data['acctmgr']['email'] = \
+                data['acctmgr'].get('email') or req.args.get('email')
         return template, data, content_type
 
     def check_config(self):
         if self.lang not in ("en", "nl", "fr", "de", "pt", "ru", "es", "tr"):
             self.log.warning('Chosen language "%s" is not a valid one. Please '
-                             'choose one of "en", "nl", "fr", "de", "pt", "ru",'
-                             '"es" or "tr". Defaulting to "en".', self.lang)
+                             'choose one of "en", "nl", "fr", "de", "pt", '
+                             '"ru", "es" or "tr". Defaulting to "en".',
+                             self.lang)
             self.config.set('recaptcha', 'lang', 'en')
             self.config.save()
         if self.theme not in ("red", "white", "blackglass", "clean"):
@@ -176,4 +193,3 @@ var RecaptchaOptions = {
                              '"clean". Defaulting to "white".')
             self.config.set('recaptcha', 'theme', 'white')
             self.config.save()
-
