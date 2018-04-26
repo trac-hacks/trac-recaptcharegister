@@ -16,7 +16,10 @@ setup(
     install_requires=[
         'Trac',
         # 'AccountManagerPlugin==0.2.1',
-        'recaptcha_client>=2.0.1',
+        'recaptcha-client>=2.0.1',
+    ],
+    dependency_links=[
+        'https://github.com/redhat-infosec/python-recaptcha/releases/download/v2.0.1/python-recaptcha-2.0.1.tar.gz#egg=recaptcha-client-2.0.1'
     ],
     entry_points={
         'trac.plugins': [
