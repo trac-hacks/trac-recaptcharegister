@@ -126,7 +126,7 @@ var RecaptchaOptions = {
                     name='recaptcha_lang'))
 
             # First fieldset of the Account Manager config form
-            xpath_match = '//form[@id="accountsconfig"]/fieldset[1]'
+            xpath_match = '//form[@id="cfg_wiz"]/fieldset[1]'
 
             return stream | Transformer(xpath_match). \
                 before(tag.fieldset(tag.legend("reCAPTCHA") + api_html +
